@@ -1,0 +1,40 @@
+{% extends 'planning_travel/base.html' %}
+{% block titulo %}Lista de Servicios de Hoteles{% endblock %}
+{% block contenedor %}
+<h1 class="text-center mt-5">Servicios de Hoteles</h1>
+<a href="{% url 'comodidades_form' %}" class="btn btn-primary ms-4 mb-4">Agregar Servicio a los hoteles</a>
+<div style="margin:40px">
+    <table class="table">
+        <thead class="table-info">
+            <tr>
+                <th>ID Hotel</th>
+                <th>Nombre del Hotel</th>
+                <th>Nombre del Servicio</th>
+                <th>Icono</th>
+                <th>acciones</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for servicio in servicios_por_hotel %}
+            <tr>
+                <td>{{ servicio.hotel_id }}</td>
+                <td>{{ servicio.hotel_nombre }}</td>
+                <td>{{ servicio.servicio_nombre }}</td>
+                <td>
+                    {% if servicio.icono %}
+                        <img src="{{ servicio.icono }}" alt="{{ servicio.servicio_nombre }}" width="30">
+                    {% endif %}
+                </td>
+                <td>
+                    <a class="btn btn-warning" href="{% url 'servicios_hotel_form_editar' servicio.id %}"><i
+                            class="bi bi-pencil"></i></a>
+                    <a href="javascript:eliminar('{% url 'comodidades_eliminar' servicio.id %}')" class="btn btn-danger"><i
+                            class="bi bi-x-lg"></i></a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

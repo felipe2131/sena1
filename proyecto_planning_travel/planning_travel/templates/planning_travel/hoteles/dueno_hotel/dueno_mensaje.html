@@ -1,0 +1,224 @@
+{% extends 'planning_travel/hoteles/dueno_hotel/dueno_hotel.html' %}
+{% load static %}
+
+{% block estilos %}
+<link rel="stylesheet" href="{% static 'planning_travel/styles/dueno/dueno_mensaje.css' %}">
+{% endblock %}
+
+{% block titulo %}mensaje{% endblock %}
+
+{% block contenedor %}
+<main id="contenedor">
+    <div id="lado1">
+        <div id="seccion">
+            <div id="seccion1">
+                <p id="titulo">Mensajes</p>
+                <div id="botones">
+                    <a id="boton1"><i class="bi bi-search"></i></a>
+                </div>
+            </div>
+            <div id="seccion2">
+                <div class="dropdown">
+                    <button class="btn dropdown-toggle boton-todo" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                        Todos
+                    </button>
+                    <ul class="dropdown-menu boton-todos" aria-labelledby="dropdownMenuButton1">
+                        <li><a class="dropdown-item item-todos" href="#"><i class="bi bi-chat-square"></i> Todos</a></li>
+                        <li><a class="dropdown-item item-todos" href="#"><i class="bi bi-house"></i> Anfitrión</a></li>
+                        <li><a class="dropdown-item item-todos" href="#"><i class="bi bi-luggage-fill"></i> Modo Viajero</a></li>
+                        <li><a class="dropdown-item item-todos" href="#"><i class="bi bi-globe-americas"></i> Asistencia</a></li>
+                    </ul>
+                </div>
+                <button id="parrafo-boton">Eliminar los filtros</button>
+            </div>
+        </div>
+
+        <div id="contenedor-parrafo">
+            <div id="mensajes">
+                {% for mensaje in mensajes %}
+                <button class="mensaje-btn" data-id="{{ mensaje.id }}" onclick="openChat('{{ mensaje.id_remitente.id }}', '{{ mensaje.id_destinatario.id }}')">
+                    <div style="display: flex; align-items: flex-start;">
+                        <img src="{% if mensaje.id_remitente.id == data.id %}{{ mensaje.id_destinatario.foto.url }}{% else %}{{ mensaje.id_remitente.foto.url }}{% endif %}" alt="Imagen" class="img">
+                        <div class="mensaje-item">
+                            <div class="mensaje-header">
+                                <p class="mensaje-usuario">
+                                    {% if mensaje.id_remitente.id == data.id %}
+                                        {{ mensaje.id_destinatario.nombre }}
+                                    {% else %}
+                                        {{ mensaje.id_remitente.nombre }}
+                                    {% endif %}
+                                </p>
+                                <p class="mensaje-hora">{{ mensaje.fecha|time:"H:i:s" }}</p>
+                            </div>
+                            <p class="mensaje-contenido">
+                                {% if mensaje.id_remitente.id == data.id %}
+                                    <i class="bi bi-check2-all"></i>
+                                {% endif %}
+                                {{ mensaje.contenido }}
+                            </p>
+                        </div>
+                    </div>
+                </button>
+                {% endfor %}
+            </div>
+        </div>     
+    </div>
+    <div id="lado2" style="display: none;">
+        <div class="chat-container" style="display: flex; flex-direction: column; height: 100%;">
+            <div class="chat-header" style="display: flex; align-items: center; gap: 8px">
+                <div style="border-radius: 50%; width: 40px; height: 40px; background-color: white;">
+                    <img src="" alt="" class="img" style="width: 40px; height: 40px; border-radius: 50%;">
+                </div>
+                <div>
+                    <h3 id="chat-nombre">Chat</h3>
+                </div>
+                
+            </div>
+    
+            <div style="flex: 1; display: flex; flex-direction: column; padding: 10px;">
+                <div id="chat-mensajes" style="color: rgb(63, 63, 63); border: 1px solid rgb(207, 206, 206); border-radius: 10px; width: 100%; height: 700px; overflow-y: auto;padding: 10px;">
+                    <!-- Los mensajes se añadirán aquí -->
+                </div>
+            </div>
+    
+            <form id="chat-form" class="section text-center" action="{% url 'enviar_men' %}" method="post">
+                {% csrf_token %}
+                <div class="chat-input" style="display: flex; gap: 10px; margin-top: 10px;">
+                    <input type="hidden" id="destinatario_id" name="destinatario_id" value="">
+                    <input type="text" id="message-input" placeholder="Escribe un mensaje..." name="mensaje" required style="flex: 1;">
+                    <button type="submit" id="send-button" style="max-width: 30%;">Enviar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    
+</main>
+
+<script>
+    function openChat(remitenteId, idDestinatario) {
+    document.getElementById('lado2').style.display = 'block';
+    var chatMensajes = document.getElementById("chat-mensajes");
+    chatMensajes.innerHTML = ''; 
+
+    var mensajesFiltrados = [
+        {% for mensaje in todos_mensajes %}
+        {
+            contenido: "{{ mensaje.contenido|escapejs }}",
+            remitenteId: {{ mensaje.id_remitente.id }},
+            destinatarioId: {{ mensaje.id_destinatario.id }},
+            hora: "{{ mensaje.fecha|time:'H:i:s' }}", 
+            remitenteNombre: "{{ mensaje.id_remitente.nombre|escapejs }}",
+            destinatarioNombre: "{{ mensaje.id_destinatario.nombre|escapejs }}",
+            remitenteFoto: "{{ mensaje.id_remitente.foto.url }}",
+            destinatarioFoto: "{{ mensaje.id_destinatario.foto.url }}"
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    var usuarioNombre = '';
+    let destinatarioId = null;
+    let usuarioFoto = '';  // Variable para almacenar la URL de la imagen
+
+    // Filtrar mensajes para mostrar solo los de la conversación seleccionada
+    var mensajesOrdenados = mensajesFiltrados.filter(function(mensaje) {
+        return (mensaje.remitenteId == remitenteId && mensaje.destinatarioId == idDestinatario) ||
+               (mensaje.remitenteId == idDestinatario && mensaje.destinatarioId == remitenteId);
+    });
+
+    // Separar mensajes enviados y recibidos
+    var mensajesEnviados = mensajesOrdenados.filter(mensaje => mensaje.remitenteId == {{ data.id }});
+    var mensajesRecibidos = mensajesOrdenados.filter(mensaje => mensaje.remitenteId != {{ data.id }});
+
+    // Combinar mensajes: primero enviados, luego recibidos
+    var mensajesCombinados = mensajesEnviados.concat(mensajesRecibidos);
+
+    // Ordenar mensajes combinados por hora, minuto y segundo
+    mensajesCombinados.sort((a, b) => {
+        var fechaA = new Date("1970-01-01T" + a.hora + "Z");
+        var fechaB = new Date("1970-01-01T" + b.hora + "Z");
+        return fechaA - fechaB; // Ordenar por la fecha
+    });
+
+    // Agregar mensajes al contenedor
+    mensajesCombinados.forEach(function(mensaje) {
+        var mensajeDiv = document.createElement("div");
+        mensajeDiv.className = "mensaje-contenedor"; 
+
+        // Asignar clase según si es enviado o recibido
+        if (mensaje.remitenteId == {{ data.id }}) {
+            mensajeDiv.classList.add("enviado"); 
+            mensajeDiv.innerHTML = '<i class="bi bi-check2-all"></i> ' + mensaje.contenido + ' <span class="hora" style="font-size: 0.7em;" >' + mensaje.hora + '</span>';
+        } else {
+            mensajeDiv.classList.add("recibido"); 
+            mensajeDiv.innerHTML = mensaje.contenido + ' <span class="hora" style="font-size: 0.7em;">' + mensaje.hora + '</span>';
+        }
+
+        // Añadir el contenedor del mensaje al contenedor de chat
+        chatMensajes.appendChild(mensajeDiv);
+
+        // Establecer el nombre y la foto del usuario solo la primera vez
+        if (!usuarioNombre) {
+            usuarioNombre = (mensaje.remitenteId == {{ data.id }} ? mensaje.destinatarioNombre : mensaje.remitenteNombre);
+            destinatarioId = (mensaje.remitenteId == {{ data.id }} ? mensaje.destinatarioId : mensaje.remitenteId);
+            usuarioFoto = (mensaje.remitenteId == {{ data.id }} ? mensaje.destinatarioFoto : mensaje.remitenteFoto); // Obtener la foto
+        }
+    });
+
+    // Actualizar el encabezado del chat
+    document.getElementById("chat-nombre").innerText = usuarioNombre || "Usuario desconocido";
+    document.getElementById("destinatario_id").value = destinatarioId;
+
+    // Actualizar la imagen en el encabezado del chat
+    document.querySelector(".chat-header img").src = usuarioFoto || "{% static 'default.jpg' %}";
+}
+
+    async function enviarMensaje() {
+    const contenido = document.getElementById("mensaje-input").value; // Obtener el contenido del mensaje
+    const destinatarioId = document.getElementById("destinatario_id").value; // Obtener el ID del destinatario
+
+    if (!contenido) {
+        alert("Por favor, escribe un mensaje.");
+        return;
+    }
+
+    try {
+        const response = await fetch("/hoteles/dueno_hotel/enviar_mensaje/", { 
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}' 
+            },
+            body: JSON.stringify({
+                mensaje: contenido,
+                destinatario_id: destinatarioId
+            })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            // Crear un nuevo elemento de mensaje y agregarlo al chat
+            agregarMensaje({
+                contenido: result.contenido,
+                hora: result.hora
+            });
+            document.getElementById("mensaje-input").value = ""; 
+        } else {
+            alert(result.error);
+        }
+    } catch (error) {
+        console.error("Error en la solicitud:", error);
+    }
+}
+
+// Función para agregar el mensaje al chat
+function agregarMensaje(mensaje) {
+    const chatMensajes = document.getElementById("chat-mensajes");
+    const mensajeDiv = document.createElement("div");
+    mensajeDiv.className = "mensaje-contenedor enviado";
+    mensajeDiv.innerHTML = `<i class="bi bi-check2-all"></i> ${mensaje.contenido} <span class="hora">${mensaje.hora}</span>`;
+    chatMensajes.appendChild(mensajeDiv);
+}
+    </script>
+    
+{% endblock %}

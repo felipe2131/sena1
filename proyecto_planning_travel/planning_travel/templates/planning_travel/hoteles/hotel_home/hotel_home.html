@@ -1,0 +1,190 @@
+{% extends 'planning_travel/hoteles/base_hoteles.html' %}
+{% load static %}
+
+{% block title %}Home{% endblock %}
+{% block estilos %}
+<link
+    rel="stylesheet"
+    href="{% static 'planning_travel/styles/hotel_home.css' %}"
+/>
+{% endblock %}
+{% block content %}
+<main style="height: auto; min-height: 1080px;">
+    <section class="barra-servicios d-flex">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#ordenar"><i class="bi bi-sort-up"></i> Ordenar</button>
+        <div class="modal fade" id="ordenar" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="staticBackdropLabel">Ordenar</h1>
+                    </div>
+                    <div class="modal-body">
+                        <form id="ordenarForm" method="get">
+                            <div class="mb-3">
+                                <label class="p-2" for="orden">Ordenar por:</label>
+                                <select class="form-select" name="orden" id="orden">
+                                    <option value="">Seleccionar opción</option>
+                                    <option value="nombre_asc">Nombre A-Z</option>
+                                    <option value="nombre_desc">Nombre Z-A</option>
+                                    <option value="precio_asc">Precio Menor a Mayor</option>
+                                    <option value="precio_desc">Precio Mayor a Menor</option>
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="submit" form="ordenarForm" class="btn btn-primary">Aceptar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#filtros"><i class="bi bi-funnel"></i> Filtros</button>
+        <div class="modal fade" id="filtros" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="staticBackdropLabel">Filtros</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="filtrosForm" method="get">
+                            <div class="mb-3">
+                                <label for="ciudad" class="form-label">Ciudad:</label>
+                                <select class="form-select" name="ciudad" id="ciudad">
+                                    <option value="">Seleccionar ciudad</option>
+                                    {% for ciudad in ciudades %}
+                                    <option value="{{ ciudad }}" {% if ciudad == request.GET.ciudad %}selected{% endif %}>{{ ciudad }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="precio_min" class="form-label">Precio Mínimo:</label>
+                                <input type="number" class="form-control" name="precio_min" id="precio_min" placeholder="Precio mínimo" value="{{ request.GET.precio_min }}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="precio_max" class="form-label">Precio Máximo:</label>
+                                <input type="number" class="form-control" name="precio_max" id="precio_max" placeholder="Precio máximo" value="{{ request.GET.precio_max }}">
+                            </div>
+                            <!-- Filtro por Servicios -->
+                            <div class="mb-3">
+                                <label class="form-label">Servicios:</label>
+                                <div>
+                                    {% for servicio in servicios %}
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="servicios" value="{{ servicio.id }}" id="servicio_{{ servicio.id }}" {% if servicio.id|stringformat:"s" in request.GET.servicio %}checked{% endif %}>
+                                        <label class="form-check-label" for="servicio_{{ servicio.id }}">
+                                            {{ servicio.nombre }}
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <!-- Filtro por Valoración -->
+                            <div class="mb-3">
+                                <label for="valoracion" class="form-label">Valoración:</label>
+                                <select class="form-select" name="valoracion" id="valoracion">
+                                    <option value="">Seleccionar valoración</option>
+                                    <option value="2" {% if request.GET.valoracion == '2' %}selected{% endif %}>Inferior a 3 estrellas</option>
+                                    <option value="3" {% if request.GET.valoracion == '3' %}selected{% endif %}>3 estrellas </option>
+                                    <option value="4" {% if request.GET.valoracion == '4' %}selected{% endif %}>4 estrellas </option>
+                                    <option value="5" {% if request.GET.valoracion == '5' %}selected{% endif %}>5 estrellas</option>
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="submit" form="filtrosForm" class="btn btn-primary">Aceptar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div>
+            <a class="btn btn-primary" href="{% url 'inicio' %}"><i class="bi bi-arrow-clockwise"></i> Borrar filtros</a>
+        </div>
+    </section>
+    <section
+        class="container-fluid py-3 d-flex flex-wrap gap-5 justify-content-center"
+    >
+        {% for hotel, fotos in hoteles %}
+        <div class="card-hotel d-flex">
+            {% if request.session.logueo %}
+                {% if hotel.id in favoritos %}
+                    <a href="{% url 'favoritos_crearUser' id_hotel=hotel.id %}" class="btn-favorite btns-card" style="color: white; background-color:#ff5c5c">
+                        <i class="bi bi-heart-fill"></i>
+                    </a>   
+                {% else %}
+                    <a href="{% url 'favoritos_crearUser' id_hotel=hotel.id %}" class="btn-favorite btns-card">
+                        <i class="bi bi-heart-fill"></i>
+                    </a>   
+                {% endif %}
+            {% else %}
+                <a href="{% url 'favoritos_crearUser' id_hotel=hotel.id %}" class="btn-favorite btns-card">
+                    <i class="bi bi-heart-fill"></i>
+                </a>   
+            {% endif %}   
+            <div class="carrusel-container">
+                <div class="carrusel">
+                    {% for foto in fotos %}
+                    <div class="carrusel-item">
+                        <img
+                            src="{{ foto.url_foto.url }}"
+                            alt=""
+                        />
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="carrusel-indicators"></div>
+                <div class="carrusel-controls">
+                    <div class="carrusel-control prev">
+                        <i class="bi bi-caret-left-fill"></i>
+                    </div>
+                    <div class="carrusel-control next">
+                        <i class="bi bi-caret-right-fill"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="hotel-info d-flex flex-column">
+                <div class="d-flex flex-row contenedor-info-opinion">
+                    <div class="hotel-info-left">
+                        <h1 class="hotel-title">{{ hotel.nombre }}</h1>
+                        <p class="hotel-city">{{ hotel.ciudad }}</p>
+                        <p class="hotel-category">{{ hotel.categoria }}</p>
+                    </div>
+                    <div class="hotel-info-right d-flex">
+                        <div class="hotel-rating-container d-flex">
+                            <p class="hotel-rating">
+                                {% if hotel.promedio_valoracion >= 0 %}
+                                {{ hotel.promedio_valoracion | floatformat:1 }}
+                                {% else %}
+                                0
+                                {% endif %}
+                                <i class="bi bi-star-fill"></i>
+                            </p>
+                            <p class="hotel-opinions">({% if hotel.opiniones_count %}{{ hotel.opiniones_count }}{% else %}0{% endif %} opiniones)</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="hotel-price-container d-flex">
+                        <p class="text desde">Desde</p>
+                        <a class="hotel-price" onclick="detallesDelHotel(`{% url 'detalle_hotel' hotel.id %}`)">$ {{ hotel.precio_minimo | floatformat:0 }}</a>
+                    </div>
+            </div>
+        </div>
+        {% endfor %}
+    </section>
+</main>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'planning_travel/js/hotel_home.js' %}"></script>
+<script>
+    {% if request.session.logout %}
+        localStorage.clear(); 
+        {% comment %} Limpia la variable de sesión {% endcomment %}
+        {{ request.session.flush }}  
+    {% endif %}
+</script>
+{% endblock %}

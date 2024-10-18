@@ -1,0 +1,47 @@
+{% extends 'planning_travel/base.html' %} 
+{% load static %} 
+{% block titulo %}Servicios {% endblock %}
+{% block contenedor %}
+    <h1 class="text-center mt-5">Servicios</h1>
+    <a class="btn btn-primary ms-4 mb-4" href="{% url 'hoteles_comodidades_form' %}">Agregar Servicios</a>
+    <div style="margin:40px">
+    <table class="table">
+        <thead class="table-info">
+            <th>Servicio</th>
+            <th>Icono</th>
+            <th>Acciones</th>
+        </thead>
+        <tbody>
+            {% for r in data %}
+            <tr>
+                <td>{{ r.nombre }}</td>
+                <td>
+                    <img src="{{ r.icono.url }}" alt="Icono de {{ r.nombre }}" width="24" height="24"/>
+                </td>
+                <td>
+                    <a
+                        class="btn btn-warning"
+                        href="{% url 'hoteles_comodidades_form_editar' r.id %}"
+                        ><i class="bi bi-pencil"></i
+                    ></a>
+                    <a
+                        href="javascript:eliminar('{% url 'hoteles_comodidades_eliminar' r.id %}')"
+                        class="btn btn-danger"
+                        ><i class="bi bi-x-lg"></i
+                    ></a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <nav aria-label="Page navigation example">
+        <ul class="pagination">
+            <li class="page-item"><a class="page-link" href="#">Anterior</a></li>
+            <li class="page-item"><a class="page-link" href="#">1</a></li>
+            <li class="page-item"><a class="page-link" href="#">2</a></li>
+            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <li class="page-item"><a class="page-link" href="#">Siguiente</a></li>
+        </ul>
+    </nav>
+    </div>
+{% endblock %}

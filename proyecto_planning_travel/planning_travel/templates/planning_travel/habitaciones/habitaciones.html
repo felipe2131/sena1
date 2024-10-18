@@ -1,0 +1,61 @@
+{% extends 'planning_travel/base.html' %}
+{% load static %}
+
+{% block titulo %} Habitaciones {% endblock %}
+
+{% block contenedor %}
+<h1 class="text-center mt-5">Habitaciones</h1>
+<a class="btn btn-primary ms-4 mb-4" href="{% url 'habitaciones_form' %}"> Agregar habitaciones</a>
+<div style="margin:40px">
+<table class="table">
+    <thead class="table-info">
+        <th>Número Habitación</th>
+        <th>Hotel</th>
+        <th>Ocupado</th>
+        <th>Capacidad de huespedes</th>
+        <th>tipo de habitacion</th>
+        <th>Precio</th>
+        <th>Acciones</th>
+    </thead>
+    <tbody>
+        {% for r in data %}
+        <tr>
+            <td>{{ r.num_habitacion }}</td>
+            <td>{{ r.hotel }}</td>
+            <td>
+                {% if r.ocupado %}
+                    Disponible
+                {% else %}
+                    No disponible
+                {% endif %}
+        </td>
+            <td>{{ r.capacidad_huesped }}</td>
+            <td>{{ r.tipo_habitacion }}</td>
+            <td>{{ r.precio }}</td>
+            <td>
+                <a
+                    class="btn btn-warning"
+                    href="{% url 'habitaciones_form_editar' r.id %}"
+                    ><i class="bi bi-pencil"></i
+                ></a>
+                <a
+                    href="javascript:eliminar('{% url 'habitaciones_eliminar' r.id %}')"
+                    class="btn btn-danger"
+                    ><i class="bi bi-x-lg"></i
+                ></a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<nav aria-label="Page navigation example">
+    <ul class="pagination">
+        <li class="page-item"><a class="page-link" href="#">Anterior</a></li>
+        <li class="page-item"><a class="page-link" href="#">1</a></li>
+        <li class="page-item"><a class="page-link" href="#">2</a></li>
+        <li class="page-item"><a class="page-link" href="#">3</a></li>
+        <li class="page-item"><a class="page-link" href="#">Siguiente</a></li>
+    </ul>
+</nav>
+</div>  
+{% endblock %}

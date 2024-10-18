@@ -1,0 +1,39 @@
+
+{% extends 'planning_travel/base.html' %}
+{% load static %}
+{% block titulo %}Actualizar Fotos{% endblock %}
+{% block contenedor %}
+    <div class="container my-5 w-25">
+        <h1 class="text-center">Actualizar Foto</h1>
+        <form action="{% url 'fotos_actualizar' %}" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="id" value="{{ foto.id }}">  <!-- Campo oculto para el ID de la foto -->
+            
+            <div class="form-floating mb-3">
+                <select class="form-select" id="hotel" name="hotel" readonly>
+                    <option value="">Seleccionar Hotel</option>
+                    {% for h in hotel %}  
+                        <option value="{{ h.id }}" {% if h.id == foto.id_hotel.id %}selected{% endif %}>
+                            {{ h.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <label for="hotel">Hotel</label>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input type="file" class="form-control" id="foto" name="foto">
+                <label for="foto">Foto </label>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input type="text" class="form-control" id="descripcion" name="descripcion" placeholder="Descripción" value="{{ foto.descripcion }}" required>
+                <label for="descripcion">Descripción</label>
+            </div>
+
+            <div class="row my-2">
+                <button type="submit" class="btn btn-primary">Actualizar</button>
+            </div>
+        </form>
+    </div>
+{% endblock %}

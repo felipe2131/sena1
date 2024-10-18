@@ -1,0 +1,58 @@
+{% extends 'planning_travel/hoteles/base_hoteles.html' %}
+{% load static %}
+
+{% block title %}Reserva{% endblock %}
+{% block estilos %}
+<link
+    rel="stylesheet"
+    href="{% static 'planning_travel/styles/reservas.css' %}"
+/>
+{% endblock %}
+{% block content %}
+<main>
+    <form action="{% url 'separar_reserva' hotel.id %}" method="post" class="form-reserva d-flex">
+        {% csrf_token %}
+        <h3 class="titulo">Reservar</h3>
+        <div id="tota">
+            <p>Precio por noche: {{ habitaciones.0.precio }}</p>
+        </div>
+        <div class="hotel d-flex">
+            <div id="mensaje-global" style="margin-bottom: 15px;"></div>
+
+            <div class="d-flex pisos">
+                {% for habitacion in habitaciones %}
+                <div class="habitaciones">
+                    <input type="radio" value="{{ habitacion.id }}" class="habitacion" name="habitacion" id="habitacion-{{ habitacion.id }}" onclick="obtenerTotal(`{% url 'obtener_precio' %}`, {{ habitacion.id }})">
+                    <label for="habitacion-{{ habitacion.id }}"> Habitación: {{ habitacion.num_habitacion }} </label>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="datos d-flex">
+            <div class="grupo-fechas d-flex">
+                <div class="contenedor-fehcas">
+                    <label for="fecha_llegada">Fecha de llegada</label>
+                    <input type="date" class="form-control" name="fecha_llegada" id="fecha_llegada">
+                </div>
+                <div class="contenedor-fehcas">
+                    <label for="fecha_salida">Fecha de salida</label>
+                    <input type="date" class="form-control" name="fecha_salida" id="fecha_salida" disabled onchange="verificarDisponibilidad(`{% url 'verificar_disponibilidad' %}`)">
+                </div>
+            </div>
+        </div>
+        <div>
+            <div class="form-floating mb-3">
+                <input class="form-control" type="number" name="num_personas" id="num_personas" placeholder="Huespedes">
+                <label for="num_personas">Huespedes</label>
+            </div>
+        </div>
+        <button type="submit" class="btn">Reservar</button>
+
+    </form>
+</main>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'planning_travel/js/jquery-3.7.1.min.js' %}"></script>
+<script src="{% static 'planning_travel/js/reserva.js' %}"></script>
+{% endblock %}
